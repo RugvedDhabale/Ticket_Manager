@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Issue Manager</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .home-card {
+            background: #ffffff;
+            padding: 40px;
+            width: 360px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .home-card h1 {
+            margin: 0;
+            font-size: 26px;
+            color: #111827;
+        }
+
+        .subtitle {
+            margin: 12px 0 28px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .home-card button {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .home-card button:hover {
+            background: #1d4ed8;
+        }
+
+        .home-card button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+<div class="home-card">
+    <h1>Issue Manager</h1>
+    <p class="subtitle">Manage issues. Track progress. Stay organized.</p>
+
+    <button onclick="goToLogin()">Login</button>
+</div>
+
+<script>
+    if (localStorage.getItem("token")) {
+        window.location.href = "dashboard.html";
+    }
+
+    function goToLogin() {
+        window.location.href = "login.html";
+    }
+</script>
+
+</body>
+</html>

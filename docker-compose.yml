@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+
+  # ─── MySQL ────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: ticket_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ticket_manager}
+      MYSQL_USER: ${MYSQL_USER:-ticketuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ticketpass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql   # persistent volume
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Spring Boot App ──────────────────────────────────────────────
+  app:
+    build: .
+    container_name: ticket_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy   # waits for MySQL to be ready
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-ticket_manager}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-ticketuser}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-ticketpass}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: ${JWT_SECRET:-ticketmanager-secret-key-ticketmanager}
+    volumes:
+      - uploads_data:/app/uploads    # persist uploaded attachments
+
+# ─── Named Volumes ────────────────────────────────────────────────
+volumes:
+  mysql_data:
+  uploads_data:

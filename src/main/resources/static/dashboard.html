@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard | Issue Manager</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background: #f4f6f8;
+        }
+
+        header {
+            background: #2563eb;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        header button {
+            background: white;
+            color: #2563eb;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        header button:hover {
+            background: #f3f4f6;
+        }
+
+        /* -------- CONTAINER -------- */
+        .container {
+            padding: 24px;
+        }
+
+        /* -------- TICKETS GRID -------- */
+        #tickets {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .ticket {
+            background: white;
+            padding: 14px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid #2563eb;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .ticket:hover {
+            transform: translateY(-2px);
+            background: #f9fafb;
+        }
+
+        .ticket h4 {
+            margin: 0 0 6px;
+            font-size: 16px;
+        }
+
+        .ticket p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #6b7280;
+            font-size: 18px;
+            margin-top: 80px;
+        }
+
+        /* -------- MODAL -------- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            width: 420px;
+            border-radius: 10px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+        }
+
+        .modal-content input,
+        .modal-content textarea,
+        .modal-content select {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .modal-actions .right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        /* -------- BULK UPLOAD MODAL -------- */
+        .disclaimer {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .disclaimer strong {
+            color: #b45309;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .file-input-wrapper {
+            border: 2px dashed #d1d5db;
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 16px;
+            background: #f9fafb;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        #csvFile {
+            margin: 10px 0;
+        }
+
+        .upload-status {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h3>Issue Manager</h3>
+    <div class="header-buttons">
+        <button onclick="openBulkUploadModal()">Bulk Upload</button>
+        <button onclick="openModal()">Raise an Issue</button>
+    </div>
+</header>
+
+<div class="container">
+    <div id="tickets"></div>
+</div>
+
+<!-- SINGLE ISSUE MODAL -->
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">Raise an Issue</h3>
+
+        <input id="title" placeholder="Title">
+        <textarea id="description" placeholder="Description"></textarea>
+
+        <select id="priority">
+            <option>LOW</option>
+            <option>MEDIUM</option>
+            <option>HIGH</option>
+        </select>
+
+        <input type="file" id="file">
+
+        <div class="modal-actions">
+            <button id="deleteBtn"
+                    class="btn danger"
+                    onclick="deleteSelectedTicket()">
+                Delete
+            </button>
+
+            <div class="right">
+                <button class="btn" onclick="closeModal()">Cancel</button>
+                <button id="actionBtn"
+                        class="btn primary"
+                        onclick="submitTicket()">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BULK UPLOAD MODAL -->
+<div class="modal" id="bulkUploadModal">
+    <div class="modal-content">
+        <h3>Bulk Upload Issues</h3>
+
+        <div class="disclaimer">
+            <h2>Make sure your CSV file has exactly 3 columns:</h2>
+            <br><h3>Title</h3>
+            <P>Title should contain a "One-Line" Description of the Issue</P>
+            <br><h3>Description</h3>
+            <p>Describe your issue in 2/3 Sentences, make sure you mention important part only</p>
+            <br><h3>Priority</h3> 
+            <p>Mention the priority as (LOW, MEDIUM, or HIGH)</p> 
+        </div>
+
+        <div class="file-input-wrapper">
+            <p>Select CSV File</p>
+            <input type="file" id="csvFile" accept=".csv">
+        </div>
+
+        <div class="upload-status" id="uploadStatus"></div>
+
+        <div class="modal-actions">
+            <div></div>
+            <div class="right">
+                <button class="btn" onclick="closeBulkUploadModal()">Cancel</button>
+                <button class="btn primary" onclick="processBulkUpload()">
+                    Upload Issues
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

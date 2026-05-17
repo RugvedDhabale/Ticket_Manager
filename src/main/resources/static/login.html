@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Issue Manager | Login</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+<div class="login-card">
+    <h1>Issue Manager</h1>
+    <p class="subtitle">Sign in to continue</p>
+
+    <input
+        type="text"
+        id="username"
+        placeholder="Username"
+        autocomplete="username"
+    />
+
+    <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        autocomplete="current-password"
+    />
+
+    <button onclick="login()">Login</button>
+
+    <p id="msg" class="error"></p>
+</div>
+
+<script src="login.js"></script>
+</body>
+</html>
