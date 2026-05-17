@@ -1,4 +1,4 @@
-const API = "http://localhost:8080/api/tickets";
+const API = "/api/tickets";
 let selectedTicketId = null;
 let currentTicketStatus = "OPEN";
 
@@ -68,14 +68,14 @@ function closeBulkUploadModal() {
 function processBulkUpload() {
     const fileInput = document.getElementById("csvFile");
     const statusDiv = document.getElementById("uploadStatus");
-    
+
     if (!fileInput.files.length) {
         alert("Please select a CSV file");
         return;
     }
 
     const file = fileInput.files[0];
-    
+
     if (!file.name.endsWith('.csv')) {
         alert("Please select a valid CSV file");
         return;
@@ -83,7 +83,6 @@ function processBulkUpload() {
 
     statusDiv.innerText = "Uploading CSV file to server...";
 
-    // Create FormData and send to backend
     const formData = new FormData();
     formData.append("file", file);
 
@@ -100,26 +99,23 @@ function processBulkUpload() {
         return res.json();
     })
     .then(response => {
-        console.log("Bulk upload response:", response);
-        
         const successCount = response.successCount || 0;
         const failureCount = response.failureCount || 0;
-        
+
         let message = `Bulk upload complete!\n✓ ${successCount} issues created successfully`;
-        
+
         if (failureCount > 0) {
             message += `\n✗ ${failureCount} issues failed`;
             if (response.errors && response.errors.length > 0) {
-                console.error("Upload errors:", response.errors);
                 message += `\n\nErrors:\n${response.errors.slice(0, 5).join('\n')}`;
                 if (response.errors.length > 5) {
                     message += `\n... and ${response.errors.length - 5} more errors (check console)`;
                 }
             }
         }
-        
+
         statusDiv.innerText = `✓ Upload complete! ${successCount} created, ${failureCount} failed`;
-        
+
         setTimeout(() => {
             closeBulkUploadModal();
             loadTickets();
@@ -132,8 +128,6 @@ function processBulkUpload() {
         alert("Error during bulk upload: " + err.message);
     });
 }
-
-
 
 /* ---------- SUBMIT HANDLER ---------- */
 function submitTicket() {
@@ -213,61 +207,32 @@ function updateTicket() {
 
 /* ---------- DELETE ---------- */
 function deleteSelectedTicket() {
-    console.log("=== DELETE DEBUG START ===");
-    console.log("Delete function called for ticket ID:", selectedTicketId);
-    console.log("Type of selectedTicketId:", typeof selectedTicketId);
-    console.log("API base:", API);
-    
     if (!selectedTicketId) {
-        console.error("ERROR: No ticket selected");
         alert("No ticket selected");
         return;
     }
 
-    if (!confirm("Are you sure you want to delete this issue?")) {
-        console.log("Delete cancelled by user");
-        return;
-    }
+    if (!confirm("Are you sure you want to delete this issue?")) return;
 
-    const deleteUrl = `${API}/${selectedTicketId}`;
-    console.log("Full DELETE URL:", deleteUrl);
-
-    fetch(deleteUrl, {
+    fetch(`${API}/${selectedTicketId}`, {
         method: "DELETE",
-        headers: {
-            "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" }
     })
     .then(res => {
-        console.log("DELETE response received");
-        console.log("Response status:", res.status);
-        console.log("Response ok:", res.ok);
-        console.log("Response statusText:", res.statusText);
-        
         return res.text().then(text => {
-            console.log("Response body:", text);
-            if (!res.ok) {
-                throw new Error(`Delete failed with status ${res.status}: ${text}`);
-            }
+            if (!res.ok) throw new Error(`Delete failed with status ${res.status}: ${text}`);
             return text;
         });
     })
-    .then((responseText) => {
-        console.log("Delete successful!");
-        console.log("Response data:", responseText);
+    .then(() => {
         alert("Issue deleted successfully!");
         selectedTicketId = null;
         currentTicketStatus = "OPEN";
         closeModal();
         loadTickets();
-        console.log("=== DELETE DEBUG END ===");
     })
     .catch(err => {
-        console.error("=== DELETE ERROR ===");
-        console.error("Error type:", err.name);
-        console.error("Error message:", err.message);
-        console.error("Full error:", err);
-        console.error("=== DELETE ERROR END ===");
+        console.error("Delete error:", err);
         alert("Error deleting issue: " + err.message);
     });
 }
